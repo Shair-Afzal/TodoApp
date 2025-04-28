@@ -1,9 +1,12 @@
-import React, {useContext, useState} from 'react';
-import {Alert, Modal, StyleSheet, Text, Pressable, View, TextInput,TouchableOpacity,ActivityIndicator} from 'react-native';
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import React, { useContext, useState } from 'react';
+import { Alert, Modal, StyleSheet, Text, Pressable, View, TextInput, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import { MyContext } from '../../App';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { initialValues } from './utils';
+
 
 let userSchema = Yup.object().shape({
   name: Yup.string().required(),
@@ -16,69 +19,76 @@ let userSchema = Yup.object().shape({
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
     .required('Confirm Password is required'),
 });
-const CustomModal = ({setModalVisible}) => {
-    const {data,setdata}=useContext(MyContext)
-    
-  
-
+const CustomModal = ({ setModalVisible }) => {
+  const { data, setdata, isEdit, setIsEdit, } = useContext(MyContext)
+  const editingData = isEdit !== null ? data[isEdit] : initialValues;
   return (
     <Formik
-    initialValues={{ email: '',name:'',lastname:'',password:'',confirmPassword:'' }}
-    validationSchema={userSchema}
+      initialValues={editingData}
+      enableReinitialize={true}
+      validationSchema={userSchema}
+      onSubmit={async (values) => {
+        if (isEdit !== null) {
+          const arr = [...data];
+          arr[isEdit] = values
+          setIsEdit(null)
+          setdata(arr)
+          setModalVisible(false)
+          await AsyncStorage.setItem('TASKS', JSON.stringify(arr));
+        } else {
+            const existingData = await AsyncStorage.getItem('TASKS');
+            const tasks = existingData ? JSON.parse(existingData) : [];
+           
+            
+            const newData = [values, ...tasks]; // <-- manually create updated array
+            setdata(newData); // <-- update state
+            setModalVisible(false);
+            await AsyncStorage.setItem('TASKS', JSON.stringify(newData)); 
+        }
+      }
+      }
+    >
+      {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
 
-const onSubmit = {async (values) => {
-  try {
-    // Get existing data from AsyncStorage
-    const existingData = await AsyncStorage.getItem('TASKS');
-    
-    // Parse existing data or initialize an empty array if null
-    const tasks = existingData ? JSON.parse(existingData) : [];
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Enter data in form !</Text>
+            <TouchableOpacity
+              onPress={()=>setModalVisible(false)} 
+                style={{padding:10,backgroundColor:'blue'}}
 
-    // Update the state and AsyncStorage
-    const updatedTasks = [values, ...tasks];
+                >
 
-    // Store updated data back in AsyncStorage
-    await AsyncStorage.setItem('TASKS', JSON.stringify(updatedTasks));
+                <Text style={styles.textStyle}>Cancell</Text>
 
-    // Update state
-    setdata(updatedTasks);
-    setModalVisible(false);
-  } catch (error) {
-    console.error('Error storing tasks:', error);
-  }}
-}
-    
-  >
-    {({ handleChange, handleBlur, handleSubmit, values ,errors,touched}) => (
-        
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>Enter data in form !</Text>
-              <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:15}}>
-              <TextInput style={[styles.inputcontainer,touched.name&&errors.name?{borderColor:'red'}:null]} placeholder='Enter FirstName..' value={values.name} onChangeText={handleChange('name')} onBlur={handleBlur('name')}/>
-              <TextInput style={[styles.inputcontainer,touched.lastname&&errors.lastname?{borderColor:'red'}:null]} placeholder='Enter LastName..'value={values.lastname} onChangeText={handleChange('lastname')} onBlur={handleBlur('lastname')}/>
-              </View>
-              <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:15}}>
-              <TextInput style={[styles.inputcontainer,touched.password&&errors.password?{borderColor:'red'}:null]} placeholder='Enter Password..' value={values.password} onChangeText={handleChange('password')} onBlur={handleBlur('password')}/>
-              <TextInput style={[styles.inputcontainer,touched.confirmPassword&&errors.confirmPassword?{borderColor:'red'}:null]} placeholder='ConfirmPassword..'value={values.confirmPassword} onChangeText={handleChange('confirmPassword')} onBlur={handleBlur('confirmPassword')}/>
-              </View>
-              <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:15}}>
-                <TextInput style={[styles.inputcontainer,touched.email&&errors.email?{borderColor:'red'}:null]} placeholder='Enter Email..' value={values.email} onChangeText={handleChange('email')} onBlur={handleBlur('email')}/>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonClose]}
-                onPress={handleSubmit}>
-                
-                <Text style={styles.textStyle}>Sumbit</Text> 
-                 
-                
-              </TouchableOpacity>
-              </View>
+
+              </TouchableOpacity >
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 15 }}>
+              <TextInput style={[styles.inputcontainer, touched.name && errors.name ? { borderColor: 'red' } : null]} placeholder='Enter FirstName..' value={values.name} onChangeText={handleChange('name')} onBlur={handleBlur('name')} />
+              <TextInput style={[styles.inputcontainer, touched.lastname && errors.lastname ? { borderColor: 'red' } : null]} placeholder='Enter LastName..' value={values.lastname} onChangeText={handleChange('lastname')} onBlur={handleBlur('lastname')} />
             </View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 15 }}>
+              <TextInput style={[styles.inputcontainer, touched.password && errors.password ? { borderColor: 'red' } : null]} placeholder='Enter Password..' value={values.password} onChangeText={handleChange('password')} onBlur={handleBlur('password')} />
+              <TextInput style={[styles.inputcontainer, touched.confirmPassword && errors.confirmPassword ? { borderColor: 'red' } : null]} placeholder='ConfirmPassword..' value={values.confirmPassword} onChangeText={handleChange('confirmPassword')} onBlur={handleBlur('confirmPassword')} />
+            </View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 15 }}>
+              <TextInput style={[styles.inputcontainer, touched.email && errors.email ? { borderColor: 'red' } : null]} placeholder='Enter Email..' value={values.email} onChangeText={handleChange('email')} onBlur={handleBlur('email')} />
+              <TouchableOpacity style={styles.button}
+              onPress={handleSubmit}
+              >
+                <Text style={styles.txt}>{isEdit !==null?"Update":"sumbit"}</Text>
+              </TouchableOpacity>
+
+               
+              
+            </View>
+           
           </View>
-       
-        )}
-   </Formik>
-     
+        </View>
+
+      )}
+    </Formik>
+
   );
 };
 
@@ -87,15 +97,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor:'rgba(0, 0, 0, 0.1)',
-    padding:10
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    padding: 10
   },
   modalView: {
     // margin: 20,
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 15,
-    width:"100%",
+    width: "100%",
     // alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -109,27 +119,28 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 10,
     elevation: 2,
-    width:"45%",
-    paddingVertical:15,
+    width: "45%",
+    paddingVertical: 15,
+  backgroundColor:"blue"
   },
   buttonClose: {
     backgroundColor: '#2196F3',
   },
-  // textStyle: {
-  //   color: 'white',
-  //   fontWeight: 'bold',
-  //   textAlign: 'center',
-  // },
+  txt: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   modalText: {
     // marginBottom: 15,
     textAlign: 'center',
   },
-  inputcontainer:{
-    width:"45%",
-    paddingVertical:8,
-    borderWidth:1,
-    borderRadius:10,
-    paddingHorizontal:10
+  inputcontainer: {
+    width: "45%",
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10
   }
 });
 

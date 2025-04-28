@@ -5,7 +5,7 @@ import { MyContext } from '../../App'
 const CustomButton = ({setModalVisible}) => {
   return (
     <TouchableOpacity style={styles.btn} onPress={()=>setModalVisible(true)}>
-       <Text style={styles.txt}>Add button</Text>
+       <Text style={styles.txt}>Enter data</Text>
     </TouchableOpacity>
   )
 }
@@ -16,9 +16,11 @@ const styles = StyleSheet.create({
     btn:{
         padding:10,
         backgroundColor:"red"
+        
     },
     txt:{
        fontSize:14,
+       textAlign:"center"
 
     }
 })
