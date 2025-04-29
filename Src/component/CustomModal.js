@@ -1,25 +1,16 @@
 import React, { useContext, useState } from 'react';
 import { Alert, Modal, StyleSheet, Text, Pressable, View, TextInput, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import * as Yup from 'yup';
+
 import { Formik } from 'formik';
 import { MyContext } from '../../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initialValues } from './utils';
+import { userSchema } from './Schema';
 
 
-let userSchema = Yup.object().shape({
-  name: Yup.string().required(),
-  lastname: Yup.string().required(),
-  email: Yup.string().email().required(),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm Password is required'),
-});
-const CustomModal = ({ setModalVisible }) => {
+
+const CustomModal = ({ setModalVisible,setloader }) => {
   const { data, setdata, isEdit, setIsEdit, } = useContext(MyContext)
   const editingData = isEdit !== null ? data[isEdit] : initialValues;
   return (
@@ -33,15 +24,20 @@ const CustomModal = ({ setModalVisible }) => {
           arr[isEdit] = values
           setIsEdit(null)
           setdata(arr)
-          setModalVisible(false)
+          setloader(true)
+            setModalVisible(false)
+         
+          
           await AsyncStorage.setItem('TASKS', JSON.stringify(arr));
         } else {
+          setloader(true) 
             const existingData = await AsyncStorage.getItem('TASKS');
             const tasks = existingData ? JSON.parse(existingData) : [];
            
             
             const newData = [values, ...tasks]; // <-- manually create updated array
-            setdata(newData); // <-- update state
+            setdata(newData);
+           // <-- update state
             setModalVisible(false);
             await AsyncStorage.setItem('TASKS', JSON.stringify(newData)); 
         }

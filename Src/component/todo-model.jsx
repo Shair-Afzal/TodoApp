@@ -4,7 +4,7 @@ import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import CustomButton from './CustomButton';
 import CustomModal from './CustomModal';
 
-const TodoModel = ({setModalVisible,modalVisible}) => {
+const TodoModel = ({setModalVisible,modalVisible,setloader,loader}) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.centeredView}>
@@ -13,7 +13,7 @@ const TodoModel = ({setModalVisible,modalVisible}) => {
           transparent={true}
           visible={modalVisible}
          >
-          <CustomModal setModalVisible={setModalVisible}/>
+          <CustomModal setModalVisible={setModalVisible} setloader={setloader}loader={loader}/>
         </Modal>
       </SafeAreaView>
     </SafeAreaProvider>
