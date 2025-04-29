@@ -1,8 +1,9 @@
 import React, { useContext, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text,ScrollView} from 'react-native';
 import { Table, Row, Rows, Cell } from 'react-native-table-component';
 import { MyContext } from '../../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { truncateText } from './utils';
 
 
 const Tablelist = () => {
@@ -38,28 +39,28 @@ const Tablelist = () => {
   );
   
   const formattedData = data?.map((item, index) => [
-    item.email, 
-    item.name, 
-    item.lastname, 
-    item.password, 
-    item.confirmPassword, 
+   truncateText(item.email, 4), 
+   truncateText(item.name, 4),
+   truncateText(item.lastname, 4),
+   truncateText(item.password, 4),
+   truncateText(item.confirmPassword, 4),
     actionButtons(index)
   ]);   
   
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Table borderStyle={{ borderWidth: 2, borderColor: '#c8e1ff' }}>
         <Row data={tableHead} style={styles.head} textStyle={styles.text} />
         {formattedData.map((rowData, index) => (
           <Row key={index} data={rowData} textStyle={styles.text} />
         ))}
       </Table>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 30,  },
+  container: { flexGrow: 1, padding: 16, paddingTop: 30,  },
   head: { height: 40, backgroundColor: '#f1f8ff' },
   text: { margin: 6 },
   actionContainer: { flexDirection: 'row', justifyContent: 'space-between' },

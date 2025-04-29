@@ -20,26 +20,37 @@ const CustomModal = ({ setModalVisible,setloader }) => {
       validationSchema={userSchema}
       onSubmit={async (values) => {
         if (isEdit !== null) {
-          const arr = [...data];
+          setloader(true)
+          setModalVisible(false)
+          setTimeout(async()=>{
+            const arr = [...data];
           arr[isEdit] = values
           setIsEdit(null)
           setdata(arr)
-          setloader(true)
-            setModalVisible(false)
-         
           
-          await AsyncStorage.setItem('TASKS', JSON.stringify(arr));
+            
+         
+            await AsyncStorage.setItem('TASKS', JSON.stringify(arr));
+          },3000)
+          
+
+         
         } else {
           setloader(true) 
+          setModalVisible(false);
+          setTimeout(async()=>{
             const existingData = await AsyncStorage.getItem('TASKS');
             const tasks = existingData ? JSON.parse(existingData) : [];
            
             
             const newData = [values, ...tasks]; // <-- manually create updated array
+
             setdata(newData);
            // <-- update state
-            setModalVisible(false);
+            
             await AsyncStorage.setItem('TASKS', JSON.stringify(newData)); 
+          },3000)
+            
         }
       }
       }
